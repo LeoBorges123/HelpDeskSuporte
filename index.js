@@ -1,11 +1,12 @@
 const express = require("express");
+const axios = require("axios");
 const { Pool } = require("pg");
+
 const app = express();
 const port = 3000;
-
 app.use(express.json());
 
-// Configuração do PostgreSQL no Railway
+// 🔐 Configuração PostgreSQL Railway
 const pool = new Pool({
   host: "turntable.proxy.rlwy.net",
   user: "postgres",
@@ -15,12 +16,16 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Webhook que será chamado pela PlugzAPI ao enviar ou receber mensagens
+// 🔗 Configurações PlugzAPI
+const PLUGZ_URL = "https://api.plugzapi.com.br/instances/SUA_INSTANCIA/token/SEU_TOKEN";
+
+// 📩 Webhook para receber mensagens
 app.post("/webhook", async (req, res) => {
   const msg = req.body;
   console.log("📩 RECEBIDO:", JSON.stringify(msg, null, 2));
 
   try {
+    // 🧾 Inserir no banco
     const query = `
       INSERT INTO helpdeskinformacoes (
         isStatusReply, chatLid, connectedPhone, waitingMessage,
@@ -59,22 +64,33 @@ app.post("/webhook", async (req, res) => {
       msg.fromApi || false,
       msg.text?.message || null
     ];
-
     await pool.query(query, values);
-    console.log("✅ Mensagem salva com sucesso no banco PostgreSQL.");
+    console.log("✅ Mensagem salva no banco.");
+
+    // 🤖 Se for mensagem do cliente, responde com botões
+    if (msg.text?.message && msg.fromMe === false) {
+      await axios.post(`${PLUGZ_URL}/send-button-list`, {
+        phone: msg.phone,
+        message: "Qual o tipo de suporte que você precisa?",
+        buttonList: {
+          buttons: [
+            { id: "duvida", label: "📘 Dúvida" },
+            { id: "problema", label: "🛠 Problema" }
+          ]
+        }
+      });
+      console.log("📨 Botões enviados com sucesso.");
+    }
+
     res.sendStatus(200);
   } catch (err) {
-    console.error("❌ ERRO ao salvar no banco:", err.message);
+    console.error("❌ ERRO:", err.message);
     res.sendStatus(500);
   }
 });
 
-// Endpoint opcional para testar se está online
-app.get("/", (req, res) => {
-  res.send("✅ Webhook ativo e rodando.");
-});
-
-// Endpoint para consultar mensagens
+// Teste e consulta
+app.get("/", (req, res) => res.send("✅ Webhook ativo e rodando."));
 app.get("/mensagens", async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT * FROM helpdeskinformacoes ORDER BY id DESC LIMIT 100");
@@ -86,5 +102,5 @@ app.get("/mensagens", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`🚀 Webhook ativo na porta ${port}`);
+  console.log(`🚀 Webhook escutando na porta ${port}`);
 });

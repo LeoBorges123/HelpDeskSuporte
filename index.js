@@ -15,7 +15,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Webhook para receber dados
+// Webhook que será chamado pela PlugzAPI ao enviar ou receber mensagens
 app.post("/webhook", async (req, res) => {
   const msg = req.body;
   console.log("📩 RECEBIDO:", JSON.stringify(msg, null, 2));
@@ -61,12 +61,17 @@ app.post("/webhook", async (req, res) => {
     ];
 
     await pool.query(query, values);
-    console.log("✅ Dados salvos com sucesso no banco PostgreSQL.");
+    console.log("✅ Mensagem salva com sucesso no banco PostgreSQL.");
     res.sendStatus(200);
   } catch (err) {
     console.error("❌ ERRO ao salvar no banco:", err.message);
     res.sendStatus(500);
   }
+});
+
+// Endpoint opcional para testar se está online
+app.get("/", (req, res) => {
+  res.send("✅ Webhook ativo e rodando.");
 });
 
 // Endpoint para consultar mensagens

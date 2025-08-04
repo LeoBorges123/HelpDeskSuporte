@@ -17,7 +17,7 @@ const pool = new Pool({
 });
 
 // 🔗 Configurações PlugzAPI
-const PLUGZ_URL = "https://api.plugzapi.com.br/instances/SUA_INSTANCIA/token/SEU_TOKEN";
+const PLUGZ_URL = "https://api.plugzapi.com.br/instances/3E5086A6537DF06F0DEC5E06DC0B5B06/token/E9F6A18E28490507147034D5";
 
 // 📩 Webhook para receber mensagens
 app.post("/webhook", async (req, res) => {
@@ -104,3 +104,4 @@ app.get("/mensagens", async (req, res) => {
 app.listen(port, () => {
   console.log(`🚀 Webhook escutando na porta ${port}`);
 });
+

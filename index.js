@@ -5,7 +5,7 @@ const port = 3000;
 
 app.use(express.json());
 
-// 🔗 Configurações da PlugzAPI
+// 🔗 Configuração PlugzAPI
 const PLUGZ_URL = "https://api.plugzapi.com.br/instances/3E5086A6537DF06F0DEC5E06DC0B5B06/token/E9F6A18E28490507147034D5";
 
 app.post("/webhook", async (req, res) => {
@@ -14,23 +14,15 @@ app.post("/webhook", async (req, res) => {
 
   try {
     if (msg.text?.message && msg.fromMe === false) {
-      // Enviar mensagem com botões
       await axios.post(`${PLUGZ_URL}/send-button-list`, {
-  "phone": "5511999999999",
-  "message": "PlugZapi é Bom ?",
-  "buttonList": {
-    "buttons": [
-      {
-        "id": "1",
-        "label": "Ótimo"
-      },
-      {
-        "id": "2",
-        "label": "Excelênte"
-      }
-    ]
-  }
-}
+        phone: msg.phone,
+        message: "Qual o tipo de suporte você precisa?",
+        buttonList: {
+          buttons: [
+            { id: "duvida", label: "📘 Dúvida" },
+            { id: "problema", label: "🛠 Problema" }
+          ]
+        }
       });
       console.log("✅ Botões enviados para:", msg.phone);
     }
